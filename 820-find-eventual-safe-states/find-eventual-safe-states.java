@@ -1,38 +1,59 @@
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+
 class Solution {
     public List<Integer> eventualSafeNodes(int[][] graph) {
-        //topo sort of the reversed graph
-
-        //reverse the edges of the graph
-
-        ArrayList<ArrayList<Integer>> adj = new ArrayList<>();
         int n = graph.length;
-        for(int i=0;i<n;i++){
-            adj.add(new ArrayList<>());
+        
+        // 1. Create a reversed graph and an array to track in-degrees
+        List<List<Integer>> adjRev = new ArrayList<>();
+        int[] inDegree = new int[n];
+        
+        for (int i = 0; i < n; i++) {
+            adjRev.add(new ArrayList<>());
         }
-        int[] indeg = new int[n];
-        for(int i = 0; i <n;i++){
-            for(int j : graph[i]){
-                adj.get(j).add(i);
-                indeg[i]++;
+        
+        for (int i = 0; i < n; i++) {
+            for (int neighbor : graph[i]) {
+                // Original edge: i -> neighbor
+                // Reversed edge: neighbor -> i
+                adjRev.get(neighbor).add(i);
+                inDegree[i]++;
             }
         }
+        
+        // 2. Add all terminal nodes (nodes with 0 out-degree in the original graph)
         Queue<Integer> q = new LinkedList<>();
-        for(int i = 0; i <n; i++){
-            if(indeg[i] == 0){
+        for (int i = 0; i < n; i++) {
+            if (inDegree[i] == 0) {
                 q.offer(i);
             }
         }
-        //topo sort
-        ArrayList<Integer> ans = new ArrayList<>();
-        while(!q.isEmpty()){
+        
+        // 3. Process the queue using BFS
+        boolean[] isSafe = new boolean[n];
+        while (!q.isEmpty()) {
             int node = q.poll();
-            ans.add(node);
-            for(int a : adj.get(node)){
-                indeg[a]--;
-                if(indeg[a]==0) q.offer(a);
+            isSafe[node] = true;
+            
+            for (int neighbor : adjRev.get(node)) {
+                inDegree[neighbor]--;
+                if (inDegree[neighbor] == 0) {
+                    q.offer(neighbor);
+                }
             }
         }
-        Collections.sort(ans);
-        return ans;
+        
+        // 4. Collect all safe nodes in ascending order
+        List<Integer> safeNodes = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            if (isSafe[i]) {
+                safeNodes.add(i);
+            }
+        }
+        
+        return safeNodes;
     }
 }
